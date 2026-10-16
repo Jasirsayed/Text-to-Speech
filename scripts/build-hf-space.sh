@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
-# Builds dist/vaani-hf-space.zip: everything a Hugging Face Docker Space needs.
+# Builds dist/vaani-hf-space.zip: the files for a Hugging Face Gradio Space (ZeroGPU).
 set -euo pipefail
 cd "$(dirname "$0")/.."
-out=dist/hf-space
-rm -rf "$out" && mkdir -p "$out"
-cp -r server scripts web "$out/"
-cp deploy/huggingface/Dockerfile deploy/huggingface/README.md "$out/"
-find "$out" -name __pycache__ -prune -exec rm -rf {} +
-(cd "$out" && rm -f ../vaani-hf-space.zip && zip -qr ../vaani-hf-space.zip .)
+mkdir -p dist
+rm -f dist/vaani-hf-space.zip
+(cd deploy/hf-space && zip -q ../../dist/vaani-hf-space.zip app.py requirements.txt packages.txt README.md)
 echo "Built dist/vaani-hf-space.zip"

@@ -41,16 +41,22 @@ docker run -p 8000:8000 vaani            # add --gpus all for CUDA
 
 To host the static site separately from the API, set `window.VAANI_API_BASE` in `web/config.js`.
 
-### Shared hosting (Hostinger, cPanel)
+### Shared hosting (Hostinger, cPanel) + free Hugging Face API
 
 Shared hosting can serve the website but not the models (they need Python + PyTorch).
-Run the API on a VPS or GPU machine, then build the static bundle pointing at it:
+The free route is a Hugging Face **Gradio** Space on **ZeroGPU** (`deploy/hf-space/`):
+
+1. Create a Space (SDK: Gradio, Blank, hardware: ZeroGPU) and upload the four files from
+   `deploy/hf-space/` (or `scripts/build-hf-space.sh` → `dist/vaani-hf-space.zip`).
+   Choose languages with the `LANGS` variable in the Space settings (default `hi,ta,bn`).
+2. Build the site bundle pointing at it and extract it into `public_html`:
 
 ```bash
-scripts/build-static.sh https://api.yourdomain.com   # → dist/vaani-hostinger.zip
+scripts/build-static.sh https://<user>-<space>.hf.space   # → dist/vaani-hostinger.zip
 ```
 
-Extract the zip into `public_html`. Step-by-step instructions: `deploy/hostinger/UPLOAD.txt`.
+`*.hf.space` addresses switch the site to Gradio's API automatically (`VAANI_API_MODE` in
+`web/config.js` overrides it). Step-by-step: `deploy/hostinger/UPLOAD.txt`.
 
 ## API
 

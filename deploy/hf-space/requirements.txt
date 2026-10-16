@@ -1,0 +1,17 @@
+spaces
+TTS @ git+https://github.com/gokulkarthik/TTS
+ai4bharat-transliteration
+asteroid
+aksharamukha==1.9.7
+translators
+num2words
+indic-numtowords
+nemo-text-processing
+pyenchant
+nltk
+regex
+pysbd
+ffmpeg-python
+librosa
+soundfile
+scipy

@@ -2,6 +2,8 @@
   'use strict';
 
   const API = (window.VAANI_API_BASE || '').replace(/\/$/, '');
+  // 'rest' = server/app.py; 'gradio' = the Hugging Face Space in deploy/hf-space.
+  const MODE = window.VAANI_API_MODE || (/\.hf\.space$/.test(API) ? 'gradio' : 'rest');
   const MAX_CHARS = 2000;
   const BOTH = ['female', 'male'];
   const LANGS = [
@@ -67,6 +69,59 @@
     toastTimer = setTimeout(() => { el.toast.hidden = true; }, 4500);
   }
 
+  /* ---------- API client ---------- */
+  // Gradio's HTTP API: POST starts a job and returns an event id, then a GET
+  // streams server-sent events until `complete` (or `error`).
+  async function gradioCall(name, data) {
+    const start = await fetch(`${API}/gradio_api/call/${name}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data }),
+    });
+    if (!start.ok) throw new Error(`The Space returned ${start.status}.`);
+    const { event_id: id } = await start.json();
+    const stream = await fetch(`${API}/gradio_api/call/${name}/${id}`);
+    let event = '';
+    for (const line of (await stream.text()).split('\n')) {
+      if (line.startsWith('event:')) { event = line.slice(6).trim(); continue; }
+      if (!line.startsWith('data:')) continue;
+      const raw = line.slice(5).trim();
+      if (event === 'complete') return JSON.parse(raw);
+      if (event === 'error') {
+        let msg = null;
+        try { msg = JSON.parse(raw); } catch (e) { msg = raw; }
+        throw new Error(typeof msg === 'string' && msg ? msg : 'The Space could not generate audio (it may be out of free GPU quota — try again later).');
+      }
+    }
+    throw new Error('No result from the Space.');
+  }
+
+  async function fetchHealth() {
+    if (MODE === 'gradio') return (await gradioCall('health', []))[0];
+    const res = await fetch(API + '/api/health', { cache: 'no-store' });
+    return res.json();
+  }
+
+  async function synthesize(text, lang, voice) {
+    if (MODE === 'gradio') {
+      const [file] = await gradioCall('tts', [text, lang, voice]);
+      const res = await fetch(file.url || `${API}/gradio_api/file=${file.path}`);
+      if (!res.ok) throw new Error(`Could not download the audio (${res.status}).`);
+      return res.blob();
+    }
+    const res = await fetch(API + '/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, lang, voice }),
+    });
+    if (!res.ok) {
+      let msg = `Synthesis failed (${res.status}).`;
+      try { const j = await res.json(); if (typeof j.detail === 'string') msg = j.detail; } catch (e) { /* not JSON */ }
+      throw new Error(msg);
+    }
+    return res.blob();
+  }
+
   /* ---------- Server status ---------- */
   function setStatus(kind, text, title) {
     el.status.dataset.state = kind;
@@ -77,10 +132,9 @@
   async function poll() {
     let next = 8000;
     try {
-      const res = await fetch(API + '/api/health', { cache: 'no-store' });
-      const h = await res.json();
+      const h = await fetchHealth();
       state.available = new Set(h.languages || []);
-      if (h.ready) { setStatus('ready', `API online · ${h.languages.length} lang`); next = 30000; }
+      if (h.ready) { setStatus('ready', `API online · ${h.languages.length} lang`); next = MODE === 'gradio' ? 120000 : 30000; }
       else if (h.error) { setStatus('error', 'No models loaded', h.error); next = 15000; }
       else { setStatus('loading', 'Loading models…'); next = 3000; }
     } catch (e) {
@@ -223,24 +277,17 @@
     if (!text) { toast('Type something to speak first.'); el.text.focus(); return; }
     if (text.length > MAX_CHARS) { toast(`Keep it under ${MAX_CHARS} characters.`); return; }
     if (state.available && !state.available.has(state.lang)) {
-      toast(`${langOf(state.lang).name} isn't installed on this server. Run scripts/setup.sh ${state.lang}.`);
+      const name = langOf(state.lang).name;
+      toast(MODE === 'gradio'
+        ? `${name} isn't installed on the Space. Add "${state.lang}" to LANGS in its settings.`
+        : `${name} isn't installed on this server. Run scripts/setup.sh ${state.lang}.`);
       return;
     }
     ensureAudioGraph();
     el.audio.pause();
     setBusy(true);
     try {
-      const res = await fetch(API + '/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, lang: state.lang, voice: state.voice }),
-      });
-      if (!res.ok) {
-        let msg = `Synthesis failed (${res.status}).`;
-        try { const j = await res.json(); if (j.detail) msg = typeof j.detail === 'string' ? j.detail : msg; } catch (e) { /* not JSON */ }
-        throw new Error(msg);
-      }
-      const blob = await res.blob();
+      const blob = await synthesize(text, state.lang, state.voice);
       const { peaks, duration } = ctx ? await peaksFrom(await blob.arrayBuffer()) : { peaks: null, duration: 0 };
       const item = {
         id: Date.now(), text, lang: state.lang, voice: state.voice,

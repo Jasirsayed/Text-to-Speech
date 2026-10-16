@@ -33,7 +33,7 @@ CKPT = Path(os.getenv("CHECKPOINTS_DIR", ROOT / "checkpoints"))
 RELEASE = os.getenv(
     "RELEASE_URL", "https://github.com/AI4Bharat/Indic-TTS/releases/download/v1-checkpoints-release"
 )
-LANGS = [code.strip() for code in os.getenv("LANGS", "hi,ta,bn").split(",") if code.strip()]
+LANGS = [code.strip() for code in os.getenv("LANGS", "en,hi,kn").split(",") if code.strip()]
 MAX_CHARS = int(os.getenv("MAX_CHARS", "2000"))
 FEMALE_ONLY = {"brx"}
 REPOS = {

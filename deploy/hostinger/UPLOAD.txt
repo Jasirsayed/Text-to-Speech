@@ -17,10 +17,12 @@ Shared hosting can't run the AI models, so they run on Hugging Face:
      hardware: ZeroGPU (free). Visibility: Public.
   b. Files → Add file → Upload files: app.py, requirements.txt,
      packages.txt, README.md (from vaani-hf-space.zip). Commit.
-  c. Optional: Settings → Variables → LANGS = hi,ta,bn (any of
+  c. Optional: Settings → Variables → LANGS = en,hi,kn (default; any of
      as bn brx en gu hi kn ml mni mr or pa raj ta te).
   d. Wait for "Running" (first start downloads models: 10–20 min).
-  e. In config.js on Hostinger set:
+  e. Upload index.html, app.js, config.js, styles.css together (index.html
+     carries version tags that make browsers fetch the new scripts).
+     In config.js on Hostinger set:
        window.VAANI_API_BASE = 'https://<username>-<space-name>.hf.space';
 
 Free ZeroGPU gives each visitor a limited amount of GPU time per day; when

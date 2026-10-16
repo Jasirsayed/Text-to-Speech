@@ -48,7 +48,7 @@ The free route is a Hugging Face **Gradio** Space on **ZeroGPU** (`deploy/hf-spa
 
 1. Create a Space (SDK: Gradio, Blank, hardware: ZeroGPU) and upload the four files from
    `deploy/hf-space/` (or `scripts/build-hf-space.sh` → `dist/vaani-hf-space.zip`).
-   Choose languages with the `LANGS` variable in the Space settings (default `hi,ta,bn`).
+   Choose languages with the `LANGS` variable in the Space settings (default `en,hi,kn`).
 2. Build the site bundle pointing at it and extract it into `public_html`:
 
 ```bash

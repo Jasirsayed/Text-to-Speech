@@ -1,7 +1,7 @@
 # Vaani — Indic Text to Speech
 
 A minimal, animated web studio for **[AI4Bharat Indic-TTS](https://github.com/AI4Bharat/Indic-TTS)**:
-type text in one of 13 Indian languages (plus English and Hinglish), pick a male or female
+type text in one of 13 Indian languages (plus Indian English), pick a male or female
 voice, and listen to or download the generated speech.
 
 - **Frontend** (`web/`): dependency-free HTML/CSS/JS. Live canvas waveforms driven by the
@@ -19,8 +19,8 @@ sudo apt-get install libsndfile1-dev ffmpeg enchant   # system deps from the ups
 uvicorn server.app:api --port 8000                     # http://localhost:8000
 ```
 
-Leave out the language codes to download all of them (`as bn brx en en+hi gu hi kn ml mni mr or pa raj ta te`).
-Each language is a few hundred MB; a GPU is used automatically when available.
+Leave out the language codes to download all of them (`as bn brx en gu hi kn ml mni mr or pa raj ta te`).
+Each language is a ~1.5 GB download; a GPU is used automatically when available.
 
 Or with Docker:
 

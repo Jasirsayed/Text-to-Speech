@@ -1,3 +1,2 @@
-libsndfile1-dev
+libsndfile1
 ffmpeg
-libenchant-2-2

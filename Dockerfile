@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+COPY deploy ./deploy
 COPY scripts ./scripts
 COPY server ./server
 COPY web ./web

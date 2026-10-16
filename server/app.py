@@ -23,6 +23,7 @@ from pydantic import BaseModel, Field
 ROOT = Path(__file__).resolve().parent.parent
 WEB_DIR = ROOT / "web"
 INDIC_TTS_DIR = Path(os.getenv("INDIC_TTS_DIR", ROOT / "vendor" / "Indic-TTS" / "inference"))
+TTS_DIR = Path(os.getenv("TTS_DIR", ROOT / "vendor" / "TTS"))
 CHECKPOINTS_DIR = Path(os.getenv("CHECKPOINTS_DIR", ROOT / "checkpoints"))
 USE_CUDA = os.getenv("USE_CUDA", "auto")
 MAX_CHARS = int(os.getenv("MAX_CHARS", "2000"))
@@ -37,7 +38,6 @@ LANGUAGES = {
     "bn": {"name": "Bengali", "native": "বাংলা", "voices": ["female", "male"]},
     "brx": {"name": "Bodo", "native": "बड़ो", "voices": ["female"]},
     "en": {"name": "English", "native": "English", "voices": ["female", "male"]},
-    "en+hi": {"name": "Hinglish", "native": "Hinglish", "voices": ["female", "male"]},
     "gu": {"name": "Gujarati", "native": "ગુજરાતી", "voices": ["female", "male"]},
     "hi": {"name": "Hindi", "native": "हिन्दी", "voices": ["female", "male"]},
     "kn": {"name": "Kannada", "native": "ಕನ್ನಡ", "voices": ["female", "male"]},
@@ -91,6 +91,10 @@ def load_engine() -> None:
         log.warning(state.error)
         return
     try:
+        from server.compat import fix_checkpoint_config, install_compat_shims
+
+        install_compat_shims()
+        sys.path.insert(0, str(TTS_DIR))
         sys.path.insert(0, str(INDIC_TTS_DIR))
         from TTS.utils.synthesizer import Synthesizer
         from src.inference import TextToSpeechEngine
@@ -111,6 +115,7 @@ def load_engine() -> None:
 
     models = {}
     for lang in langs:
+        fix_checkpoint_config(CHECKPOINTS_DIR / lang)
         paths = {key: str(path) for key, path in checkpoint_paths(lang).items()}
         log.info("Loading %s (cuda=%s)", lang, use_cuda)
         models[lang] = Synthesizer(
@@ -120,7 +125,9 @@ def load_engine() -> None:
             encoder_config="",
             use_cuda=use_cuda,
         )
-    state.engine = TextToSpeechEngine(models)
+    # Transliteration (IndicXlit) and the denoiser (asteroid) pull in TensorFlow / a second
+    # torchaudio, so they are off: Roman-script words are spoken as typed, audio is 22.05 kHz.
+    state.engine = TextToSpeechEngine(models, allow_transliteration=False, enable_denoiser=False)
     state.loaded = langs
     state.error = None
     log.info("Ready: %s", ", ".join(langs))
@@ -197,4 +204,5 @@ api.mount("/", StaticFiles(directory=WEB_DIR), name="web")
 if __name__ == "__main__":
     import uvicorn
 
+    sys.path.insert(0, str(ROOT))
     uvicorn.run("server.app:api", host="0.0.0.0", port=int(os.getenv("PORT", "8000")))

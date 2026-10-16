@@ -10,7 +10,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 RELEASE_URL="${RELEASE_URL:-https://github.com/AI4Bharat/Indic-TTS/releases/download/v1-checkpoints-release}"
-ALL_LANGS="as bn brx en en+hi gu hi kn ml mni mr or pa raj ta te"
+ALL_LANGS="as bn brx en gu hi kn ml mni mr or pa raj ta te"
 LANGS="${*:-$ALL_LANGS}"
 
 mkdir -p vendor checkpoints
@@ -23,10 +23,10 @@ if [ ! -d vendor/TTS ]; then
   git clone --depth 1 https://github.com/gokulkarthik/TTS vendor/TTS
 fi
 
-python3 -m pip install -e vendor/TTS
-python3 -m pip install -r vendor/Indic-TTS/inference/requirements-ml.txt \
-                       -r vendor/Indic-TTS/inference/requirements-utils.txt
-python3 -m pip install -r server/requirements.txt
+# The TTS fork pins 2022-era packages, so it is used from vendor/TTS via sys.path
+# (see server/compat.py) and only its runtime deps are installed, at current versions.
+python3 -m pip install torch
+python3 -m pip install -r deploy/hf-space/requirements.txt -r server/requirements.txt
 
 for lang in $LANGS; do
   if [ -f "checkpoints/$lang/fastpitch/best_model.pth" ]; then

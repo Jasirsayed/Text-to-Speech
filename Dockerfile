@@ -1,7 +1,7 @@
 FROM python:3.10-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      git curl unzip build-essential libsndfile1-dev ffmpeg enchant-2 \
+      git curl unzip build-essential libsndfile1-dev ffmpeg libenchant-2-2 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

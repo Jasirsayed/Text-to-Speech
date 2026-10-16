@@ -1,0 +1,5 @@
+# Web layer. The ML stack (Coqui TTS fork + Indic-TTS deps) is installed by scripts/setup.sh.
+fastapi>=0.100
+uvicorn[standard]>=0.23
+numpy
+scipy

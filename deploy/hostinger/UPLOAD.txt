@@ -1,0 +1,32 @@
+VAANI — UPLOADING TO HOSTINGER SHARED HOSTING
+=============================================
+
+1. hPanel → Websites → Manage → File Manager → open public_html
+   (delete Hostinger's default index.php / default.php if present).
+2. Upload vaani-hostinger.zip, right-click → Extract, into public_html.
+   public_html should now contain: index.html, styles.css, app.js, config.js, .htaccess
+   (enable "Show hidden files" to see .htaccess).
+3. Turn on SSL: hPanel → Security → SSL → install the free certificate.
+4. Open config.js and set your speech API address, e.g.
+       window.VAANI_API_BASE = 'https://api.yourdomain.com';
+
+FREE SPEECH API — HUGGING FACE SPACE (ZeroGPU)
+Shared hosting can't run the AI models, so they run on Hugging Face:
+
+  a. huggingface.co → New → Space. SDK: Gradio, template: Blank,
+     hardware: ZeroGPU (free). Visibility: Public.
+  b. Files → Add file → Upload files: app.py, requirements.txt,
+     packages.txt, README.md (from vaani-hf-space.zip). Commit.
+  c. Optional: Settings → Variables → LANGS = en,hi,kn (default; any of
+     as bn brx en gu hi kn ml mni mr or pa raj ta te).
+  d. Wait for "Running" (first start downloads models: 10–20 min).
+  e. Upload index.html, app.js, config.js, styles.css together (index.html
+     carries version tags that make browsers fetch the new scripts).
+     In config.js on Hostinger set:
+       window.VAANI_API_BASE = 'https://<username>-<space-name>.hf.space';
+
+Free ZeroGPU gives each visitor a limited amount of GPU time per day; when
+it runs out, Generate shows a quota message until it resets.
+
+ALTERNATIVE: run server/app.py on a VPS (see the project README) and point
+VAANI_API_BASE at it instead.

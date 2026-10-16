@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vaani — Indic Text to Speech</title>
+  <meta name="description" content="Natural text-to-speech for 13 Indian languages, powered by AI4Bharat Indic-TTS (FastPitch + HiFi-GAN).">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231C1917'/%3E%3Crect x='10' y='11' width='3' height='10' rx='1.5' fill='white'/%3E%3Crect x='14.5' y='7' width='3' height='18' rx='1.5' fill='%23EA580C'/%3E%3Crect x='19' y='10' width='3' height='12' rx='1.5' fill='white'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+Bengali:wght@500&family=Noto+Sans+Devanagari:wght@500&family=Noto+Sans+Gujarati:wght@500&family=Noto+Sans+Gurmukhi:wght@500&family=Noto+Sans+Kannada:wght@500&family=Noto+Sans+Malayalam:wght@500&family=Noto+Sans+Oriya:wght@500&family=Noto+Sans+Tamil:wght@500&family=Noto+Sans+Telugu:wght@500&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    try { const t = localStorage.getItem('vaani-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <a class="skip" href="#studio">Skip to studio</a>
+
+  <header class="nav">
+    <div class="wrap nav__row">
+      <a class="brand" href="#top" aria-label="Vaani home">
+        <span class="brand__mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        Vaani
+      </a>
+      <nav class="nav__links" aria-label="Primary">
+        <a href="#studio">Studio</a>
+        <a href="#languages">Languages</a>
+        <a href="#how">How it works</a>
+        <a href="https://github.com/AI4Bharat/Indic-TTS" target="_blank" rel="noopener">Model</a>
+      </nav>
+      <div class="nav__actions">
+        <span class="pill" id="status" role="status" aria-live="polite">
+          <span class="dot"></span><span id="status-text">Connecting…</span>
+        </span>
+        <button class="icon-btn" id="theme" type="button" aria-label="Toggle dark mode">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 9.5A5.5 5.5 0 0 1 6.5 2.5a5.5 5.5 0 1 0 7 7Z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero wrap">
+      <span class="eyebrow reveal"><span class="dot dot--accent"></span>Built on AI4Bharat Indic-TTS · FastPitch + HiFi-GAN</span>
+      <h1 class="reveal" style="--d:1">Natural speech for the next billion users.</h1>
+      <p class="lede reveal" style="--d:2">Type in any of 13 Indian languages and hear it spoken back in a male or female voice. Open-source models, running on your own server.</p>
+      <div class="hero__cta reveal" style="--d:3">
+        <a class="btn btn--primary" href="#studio">Try the studio</a>
+        <a class="btn" href="https://arxiv.org/abs/2211.09536" target="_blank" rel="noopener">Read the paper</a>
+      </div>
+      <canvas class="hero__wave reveal" style="--d:4" id="hero-wave" aria-hidden="true"></canvas>
+    </section>
+
+    <section class="wrap studio-wrap" id="studio" aria-label="Studio">
+      <div class="studio reveal">
+        <div class="studio__bar">
+          <span class="traffic" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="mono muted">studio / <span id="file-name">untitled</span></span>
+          <span class="mono muted" id="format">WAV</span>
+        </div>
+
+        <div class="studio__body">
+          <aside class="langs" aria-label="Language">
+            <label class="langs__search">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg>
+              <input id="lang-search" type="search" placeholder="Search languages" aria-label="Search languages" autocomplete="off">
+            </label>
+            <div class="langs__list" id="lang-list" role="listbox" aria-label="Languages"></div>
+          </aside>
+
+          <div class="editor">
+            <div class="editor__main">
+              <div class="editor__head">
+                <label for="text" class="label">Text · <span id="lang-label">Hindi</span></label>
+                <button class="btn btn--sm" type="button" id="sample">Insert sample</button>
+              </div>
+              <textarea id="text" maxlength="2000" spellcheck="false" placeholder="Type or paste text in the selected language…"></textarea>
+              <div class="editor__meta mono muted">
+                <span><span id="count">0</span> / 2000 characters</span>
+                <span class="hide-sm">Numbers are spoken as words automatically</span>
+              </div>
+            </div>
+
+            <div class="editor__controls">
+              <div class="seg" role="radiogroup" aria-label="Voice">
+                <button type="button" role="radio" data-voice="female" aria-checked="true">Female</button>
+                <button type="button" role="radio" data-voice="male" aria-checked="false">Male</button>
+              </div>
+              <button class="btn btn--primary btn--lg" id="generate" type="button">
+                <span class="spinner" aria-hidden="true"></span>
+                <span id="generate-label">Generate speech</span>
+                <kbd class="mono">⌘ ↵</kbd>
+              </button>
+            </div>
+
+            <div class="player" id="player" data-state="empty">
+              <span class="player__sweep" aria-hidden="true"></span>
+              <button class="play" id="play" type="button" aria-label="Play" disabled>
+                <svg class="i-play" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5v11l9-5.5z"/></svg>
+                <svg class="i-pause" viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="1" width="3.5" height="12" rx="1"/><rect x="8.5" y="1" width="3.5" height="12" rx="1"/></svg>
+              </button>
+              <canvas class="player__wave" id="out-wave" aria-label="Audio waveform — click to seek" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0"></canvas>
+              <span class="mono muted player__time" id="time">--:--</span>
+              <a class="icon-btn icon-btn--box" id="download" aria-label="Download WAV" aria-disabled="true" tabindex="-1">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M2.5 13.5h11"/></svg>
+              </a>
+              <audio id="audio" preload="auto"></audio>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="history reveal" id="history-wrap" hidden>
+        <h2 class="label">Recent</h2>
+        <ol class="history__list" id="history"></ol>
+      </div>
+    </section>
+
+    <section class="band" id="languages">
+      <div class="wrap band__head reveal">
+        <h2>Thirteen languages, ten scripts.</h2>
+        <p class="muted">Dravidian, Indo-Aryan and Tibeto-Burman languages, each with jointly trained male and female voices.</p>
+      </div>
+      <div class="marquee" aria-hidden="true"><div class="marquee__track" id="marquee"></div></div>
+    </section>
+
+    <section class="wrap how" id="how">
+      <h2 class="reveal">How a sentence becomes speech</h2>
+      <div class="how__grid">
+        <article class="card reveal" style="--d:1">
+          <span class="mono accent">01 · Normalize</span>
+          <h3>Text front-end</h3>
+          <p class="muted">Numbers are expanded to words, sentences are segmented, and English words are transliterated into the native script.</p>
+        </article>
+        <article class="card reveal" style="--d:2">
+          <span class="mono accent">02 · FastPitch</span>
+          <h3>Acoustic model</h3>
+          <p class="muted">A non-autoregressive model predicts pitch and duration per character, then renders a mel-spectrogram for the chosen speaker.</p>
+        </article>
+        <article class="card reveal" style="--d:3">
+          <span class="mono accent">03 · HiFi-GAN</span>
+          <h3>Neural vocoder</h3>
+          <p class="muted">The spectrogram is turned into a waveform, denoised, and returned to your browser as WAV.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot__row">
+      <span>Vaani · models by AI4Bharat, IIT Madras (MIT licence)</span>
+      <a href="https://github.com/AI4Bharat/Indic-TTS" target="_blank" rel="noopener">github.com/AI4Bharat/Indic-TTS</a>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="alert" hidden></div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

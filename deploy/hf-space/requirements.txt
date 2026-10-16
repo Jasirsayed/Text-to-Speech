@@ -1,0 +1,31 @@
+# torch is preinstalled on ZeroGPU. The Coqui TTS fork is cloned at startup
+# (its own pins are from 2022), so these are its runtime deps at current versions.
+spaces
+huggingface_hub>=0.30,<1.0
+numpy<2
+scipy
+librosa>=0.10
+soundfile
+setuptools<81
+pyworld
+trainer==0.0.20
+coqpit>=0.0.16
+inflect
+anyascii
+pysbd
+fsspec
+pyyaml
+tqdm
+matplotlib
+gruut==2.4.0
+jieba
+pypinyin
+# Indic-TTS text front-end
+nltk
+aksharamukha
+num2words
+indic-numtowords
+indic-nlp-library
+nemo-text-processing
+ffmpeg-python
+regex

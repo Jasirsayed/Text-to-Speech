@@ -1,0 +1,26 @@
+VAANI — UPLOADING TO HOSTINGER SHARED HOSTING
+=============================================
+
+1. hPanel → Websites → Manage → File Manager → open public_html
+   (delete Hostinger's default index.php / default.php if present).
+2. Upload vaani-hostinger.zip, right-click → Extract, into public_html.
+   public_html should now contain: index.html, styles.css, app.js, config.js, .htaccess
+   (enable "Show hidden files" to see .htaccess).
+3. Turn on SSL: hPanel → Security → SSL → install the free certificate.
+4. Open config.js and set your speech API address, e.g.
+       window.VAANI_API_BASE = 'https://api.yourdomain.com';
+
+IMPORTANT — WHY STEP 4 IS NEEDED
+Shared hosting runs only static files and PHP. The AI4Bharat models need
+Python + PyTorch (and ideally a GPU), so the API must run on a separate
+machine: a Hostinger VPS (KVM 2 or higher, 8 GB RAM recommended), any cloud
+VM, or a GPU host. On that machine, from the project repo:
+
+       ./scripts/setup.sh hi ta bn          # languages you want
+       uvicorn server.app:api --host 0.0.0.0 --port 8000
+
+Put it behind HTTPS (e.g. Nginx + Let's Encrypt on api.yourdomain.com).
+CORS is already open in the API, so the Hostinger site can call it.
+
+Until the API is set, the site loads fully but shows "API offline" and
+Generate reports that the server can't be reached.

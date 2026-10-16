@@ -5,3 +5,4 @@ vendor/
 checkpoints/
 *.wav
 .DS_Store
+dist/

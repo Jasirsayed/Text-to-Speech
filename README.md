@@ -41,6 +41,17 @@ docker run -p 8000:8000 vaani            # add --gpus all for CUDA
 
 To host the static site separately from the API, set `window.VAANI_API_BASE` in `web/config.js`.
 
+### Shared hosting (Hostinger, cPanel)
+
+Shared hosting can serve the website but not the models (they need Python + PyTorch).
+Run the API on a VPS or GPU machine, then build the static bundle pointing at it:
+
+```bash
+scripts/build-static.sh https://api.yourdomain.com   # → dist/vaani-hostinger.zip
+```
+
+Extract the zip into `public_html`. Step-by-step instructions: `deploy/hostinger/UPLOAD.txt`.
+
 ## API
 
 | Method | Path | Body / response |
